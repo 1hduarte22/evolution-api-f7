@@ -44,8 +44,9 @@ postgresql://postgres.SEU_REF:SENHA@aws-0-sa-east-1.pooler.supabase.com:5432/pos
 
 **Para não dormir:** o plano Free desliga após 15 minutos sem acesso. O CRM já tem um agendador
 que acessa a Evolution a cada 10 minutos — basta informar o endereço no Supabase (passo 4).
-Um serviço ligado o mês inteiro usa ~730 das 750 horas grátis do Render: **mantenha só este
-serviço no plano Free** da sua conta.
+Um serviço ligado o mês inteiro usa ~730 das 750 horas grátis do Render, e essas horas são
+**divididas entre todos os serviços Free da conta**. Se você já tem outros serviços grátis no Render
+(ex.: area45-api, sprint-battle), eles vão parar no fim do mês — nesse caso use a opção B.
 
 ## 2B. Oracle Cloud Always Free (alternativa estável)
 
