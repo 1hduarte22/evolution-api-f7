@@ -1,0 +1,91 @@
+# Blueprint do Render para a Evolution API usada pelo F7 CRM.
+# Render → New → Blueprint → escolha este repositório. Preencha os valores marcados
+# como "sync: false" quando o Render pedir. Guia completo: DEPLOY_F7.md
+services:
+  - type: web
+    name: f7-evolution
+    runtime: image
+    image:
+      # Imagem oficial publicada pela Evolution Foundation (já vem pronta e ativável)
+      url: docker.io/evoapicloud/evolution-api:latest
+    plan: free # grátis; o Supabase do CRM pinga a cada 10 min para não dormir
+    region: virginia
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: SERVER_PORT
+        value: "8080"
+      - key: SERVER_TYPE
+        value: http
+      - key: SERVER_URL
+        sync: false # https://f7-evolution.onrender.com (o endereço que o Render mostrar)
+      - key: TZ
+        value: America/Sao_Paulo
+      - key: LANGUAGE
+        value: pt-BR
+      # Chave global da API: copie para o segredo EVOLUTION_API_KEY no Supabase
+      - key: AUTHENTICATION_API_KEY
+        generateValue: true
+      - key: AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES
+        value: "false"
+      # Banco: um schema separado ("evolution") no Postgres do próprio Supabase (grátis)
+      - key: DATABASE_PROVIDER
+        value: postgresql
+      - key: DATABASE_CONNECTION_URI
+        sync: false # postgresql://postgres.SEU_REF:SENHA@aws-0-REGIAO.pooler.supabase.com:5432/postgres?schema=evolution
+      - key: DATABASE_CONNECTION_CLIENT_NAME
+        value: f7_evolution
+      # Guarda só a sessão do WhatsApp; as conversas ficam no CRM
+      - key: DATABASE_SAVE_DATA_INSTANCE
+        value: "true"
+      - key: DATABASE_SAVE_DATA_NEW_MESSAGE
+        value: "false"
+      - key: DATABASE_SAVE_MESSAGE_UPDATE
+        value: "false"
+      - key: DATABASE_SAVE_DATA_CONTACTS
+        value: "false"
+      - key: DATABASE_SAVE_DATA_CHATS
+        value: "false"
+      - key: DATABASE_SAVE_DATA_LABELS
+        value: "false"
+      - key: DATABASE_SAVE_DATA_HISTORIC
+        value: "false"
+      - key: DATABASE_DELETE_MESSAGE
+        value: "true"
+      # Sem Redis (economia): cache em memória
+      - key: CACHE_REDIS_ENABLED
+        value: "false"
+      - key: CACHE_LOCAL_ENABLED
+        value: "true"
+      # Os webhooks são configurados por instância pelo próprio CRM
+      - key: WEBHOOK_GLOBAL_ENABLED
+        value: "false"
+      - key: WEBSOCKET_ENABLED
+        value: "false"
+      - key: RABBITMQ_ENABLED
+        value: "false"
+      - key: SQS_ENABLED
+        value: "false"
+      - key: TYPEBOT_ENABLED
+        value: "false"
+      - key: CHATWOOT_ENABLED
+        value: "false"
+      - key: OPENAI_ENABLED
+        value: "false"
+      - key: S3_ENABLED
+        value: "false"
+      - key: DEL_INSTANCE
+        value: "false"
+      - key: QRCODE_LIMIT
+        value: "30"
+      - key: CONFIG_SESSION_PHONE_CLIENT
+        value: F7 CRM
+      - key: CONFIG_SESSION_PHONE_NAME
+        value: Chrome
+      - key: LOG_LEVEL
+        value: ERROR,WARN,INFO
+      - key: LOG_BAILEYS
+        value: error
+      - key: CORS_ORIGIN
+        value: "*"

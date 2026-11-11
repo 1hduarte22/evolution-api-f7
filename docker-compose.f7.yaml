@@ -1,0 +1,55 @@
+# Alternativa grátis e estável: VM "Always Free" da Oracle Cloud (ou qualquer VPS).
+# Uso: copie .env.f7.example para .env.f7, preencha e rode:
+#   docker compose -f docker-compose.f7.yaml --env-file .env.f7 up -d
+# O Caddy emite o HTTPS sozinho para o domínio em EVOLUTION_DOMAIN.
+services:
+  evolution:
+    image: evoapicloud/evolution-api:latest
+    restart: always
+    environment:
+      SERVER_PORT: "8080"
+      SERVER_URL: https://${EVOLUTION_DOMAIN}
+      TZ: America/Sao_Paulo
+      LANGUAGE: pt-BR
+      AUTHENTICATION_API_KEY: ${AUTHENTICATION_API_KEY}
+      AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES: "false"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: ${DATABASE_CONNECTION_URI}
+      DATABASE_CONNECTION_CLIENT_NAME: f7_evolution
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "false"
+      DATABASE_SAVE_MESSAGE_UPDATE: "false"
+      DATABASE_SAVE_DATA_CONTACTS: "false"
+      DATABASE_SAVE_DATA_CHATS: "false"
+      DATABASE_SAVE_DATA_LABELS: "false"
+      DATABASE_SAVE_DATA_HISTORIC: "false"
+      DATABASE_DELETE_MESSAGE: "true"
+      CACHE_REDIS_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
+      WEBHOOK_GLOBAL_ENABLED: "false"
+      WEBSOCKET_ENABLED: "false"
+      CHATWOOT_ENABLED: "false"
+      TYPEBOT_ENABLED: "false"
+      OPENAI_ENABLED: "false"
+      S3_ENABLED: "false"
+      DEL_INSTANCE: "false"
+      CONFIG_SESSION_PHONE_CLIENT: F7 CRM
+      LOG_LEVEL: ERROR,WARN,INFO
+      LOG_BAILEYS: error
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    command: caddy reverse-proxy --from ${EVOLUTION_DOMAIN} --to evolution:8080
+    volumes:
+      - caddy_data:/data
+    depends_on:
+      - evolution
+
+volumes:
+  caddy_data:
