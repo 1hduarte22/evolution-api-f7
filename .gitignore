@@ -46,3 +46,6 @@ lerna-debug.log*
 .tool-versions
 
 /prisma/migrations/*
+
+# F7 CRM: segredos locais do docker-compose.f7.yaml
+.env.f7
