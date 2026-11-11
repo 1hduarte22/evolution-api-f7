@@ -1,0 +1,73 @@
+# Evolution API para o F7 CRM numa VM Always Free da Oracle (ou qualquer VPS).
+# Tudo na mesma máquina: Postgres local (sessão do WhatsApp), Evolution e Caddy (HTTPS automático).
+# Instalado pelo script oracle-cloud-init.sh, que gera o arquivo .env ao lado.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: evolution
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evolution"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  evolution:
+    image: evoapicloud/evolution-api:latest
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: "8080"
+      SERVER_URL: https://${EVOLUTION_DOMAIN}
+      TZ: America/Sao_Paulo
+      LANGUAGE: pt-BR
+      AUTHENTICATION_API_KEY: ${AUTHENTICATION_API_KEY}
+      AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES: "false"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://evolution:${PG_PASSWORD}@postgres:5432/evolution?schema=public
+      DATABASE_CONNECTION_CLIENT_NAME: f7_evolution
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "false"
+      DATABASE_SAVE_MESSAGE_UPDATE: "false"
+      DATABASE_SAVE_DATA_CONTACTS: "false"
+      DATABASE_SAVE_DATA_CHATS: "false"
+      DATABASE_SAVE_DATA_LABELS: "false"
+      DATABASE_SAVE_DATA_HISTORIC: "false"
+      DATABASE_DELETE_MESSAGE: "true"
+      CACHE_REDIS_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
+      WEBHOOK_GLOBAL_ENABLED: "false"
+      WEBSOCKET_ENABLED: "false"
+      CHATWOOT_ENABLED: "false"
+      TYPEBOT_ENABLED: "false"
+      OPENAI_ENABLED: "false"
+      S3_ENABLED: "false"
+      DEL_INSTANCE: "false"
+      CONFIG_SESSION_PHONE_CLIENT: F7 CRM
+      LOG_LEVEL: ERROR,WARN,INFO
+      LOG_BAILEYS: error
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    command: caddy reverse-proxy --from ${EVOLUTION_DOMAIN} --to evolution:8080
+    volumes:
+      - caddy_data:/data
+    depends_on:
+      - evolution
+
+volumes:
+  pgdata:
+  caddy_data:
